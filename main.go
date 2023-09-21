@@ -6,7 +6,6 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
-	"github.com/rs/zerolog/log"
 	"github.com/lgiuliani-mwb/ssm-parent/cmd"
 )
 
