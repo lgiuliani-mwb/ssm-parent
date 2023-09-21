@@ -3,3 +3,6 @@ ssm-parent
 *.log
 dist/
 vendor/
+/result
+/.direnv/flake-inputs/
+/.direnv/
