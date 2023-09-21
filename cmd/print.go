@@ -6,7 +6,7 @@ import (
 
 	"github.com/springload/ssm-parent/ssm"
 
-	"github.com/apex/log"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -30,11 +30,11 @@ var printCmd = &cobra.Command{
 			viper.GetStringSlice("expand-values"),
 		)
 		if err != nil {
-			log.WithError(err).Fatal("Can't marshal json")
+			log.Fatal().Err(err).Msg("Can't marshal json")
 		}
 		marshalled, err := json.MarshalIndent(parameters, "", "  ")
 		if err != nil {
-			log.WithError(err).Fatal("Can't marshal json")
+			log.Fatal().Err(err).Msg("Can't marshal json")
 		}
 		fmt.Println(string(marshalled))
 	},

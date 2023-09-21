@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/apex/log"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -43,69 +44,75 @@ func initSettings() {
 	if config != "" {
 		viper.SetConfigFile(config)
 		if err := viper.ReadInConfig(); err == nil {
-			log.Infof("Using config file: %s", viper.ConfigFileUsed())
+			log.Info().Msgf("Using config file: %s", viper.ConfigFileUsed())
 		} else {
-			log.WithError(err).Fatal("Had some errors while parsing the config")
+			log.Error().Err(err).Msg("Had some errors while parsing the config")
 		}
 	}
 	// parse to an array first
 	var transformationsInterfaceArray = []interface{}{}
 	if err := viper.UnmarshalKey("transformations", &transformationsInterfaceArray); err != nil {
-		log.WithError(err).Fatal("can't decode config")
+		log.Fatal().Err(err).Msg("can't decode config")
 	}
 	// unmarshal to the tiny struct first to see what the action is
 	for n, t := range transformationsInterfaceArray {
 		var hint = struct{ Action string }{}
 
 		if err := mapstructure.Decode(t, &hint); err != nil {
-			log.WithError(err).Fatal("can't decode config")
+			log.Fatal().Err(err).Msg("can't decode config")
 		}
 		switch hint.Action {
 
 		case "delete":
 			tr := new(transformations.DeleteTransformation)
 			if err := mapstructure.Decode(t, tr); err != nil {
-				log.WithFields(log.Fields{
-					"transformation_number": n,
-					"transformation_action": hint.Action,
-				}).WithError(err).Fatal("can't decode config")
+				log.Fatal().
+					Err(err).
+					Int("transformation_number", n).
+					Str("transformation_action", hint.Action).
+					Msg("can't decode config")
 			}
 			transformationsList = append(transformationsList, tr)
 		case "rename":
 			tr := new(transformations.RenameTransformation)
 			if err := mapstructure.Decode(t, tr); err != nil {
-				log.WithFields(log.Fields{
-					"transformation_number": n,
-					"transformation_action": hint.Action,
-				}).WithError(err).Fatal("can't decode config")
+
+				log.Fatal().
+					Err(err).
+					Int("transformation_number", n).
+					Str("transformation_action", hint.Action).
+					Msg("can't decode config")
 			}
 			transformationsList = append(transformationsList, tr)
 		case "template":
 			tr := new(transformations.TemplateTransformation)
 			if err := mapstructure.Decode(t, tr); err != nil {
-				log.WithFields(log.Fields{
-					"transformation_number": n,
-					"transformation_action": hint.Action,
-				}).WithError(err).Fatal("can't decode config")
+				log.Fatal().
+					Err(err).
+					Int("transformation_number", n).
+					Str("transformation_action", hint.Action).
+					Msg("can't decode config")
 			}
 			transformationsList = append(transformationsList, tr)
 		case "trim_name_prefix":
 			tr := new(transformations.TrimTransformation)
 			if err := mapstructure.Decode(t, tr); err != nil {
-				log.WithFields(log.Fields{
-					"transformation_number": n,
-					"transformation_action": hint.Action,
-				}).WithError(err).Fatal("can't decode config")
+				log.Fatal().
+					Err(err).
+					Int("transformation_number", n).
+					Str("transformation_action", hint.Action).
+					Msg("can't decode config")
 			}
 			transformationsList = append(transformationsList, tr)
 
 		default:
-			log.Warnf("Got unparsed action: %s", hint.Action)
+			log.Warn().
+				Msgf("Got unparsed action: %s", hint.Action)
 		}
 	}
 
 	if viper.GetBool("debug") {
-		log.SetLevel(log.DebugLevel)
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 }
 func init() {
@@ -137,7 +144,7 @@ func init() {
 		viper.BindPFlag("strict", rootCmd.PersistentFlags().Lookup("strict")),
 	} {
 		if err != nil {
-			log.WithError(err).Fatalf("can't bind flags")
+			log.Fatal().Err(err).Msgf("can't bind flags")
 		}
 	}
 }

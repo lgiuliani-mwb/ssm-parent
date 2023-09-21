@@ -5,7 +5,7 @@ import (
 
 	"github.com/springload/ssm-parent/ssm"
 
-	"github.com/apex/log"
+	"github.com/rs/zerolog/log"
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -32,30 +32,30 @@ var dotenvCmd = &cobra.Command{
 			viper.GetStringSlice("expand-values"),
 		)
 		if err != nil {
-			log.WithError(err).Fatal("Can't get parameters")
+			log.Fatal().Err(err).Msg("Can't get parameters")
 		}
 
 		// we don't want to use godotenv as it creates files with too open permissions
 		content, err := godotenv.Marshal(parameters)
 		if err != nil {
-			log.WithError(err).Fatal("Can't marshal the env to a string")
+			log.Fatal().Err(err).Msg("Can't marshal the env to a string")
 		}
 
 		file, err := os.OpenFile(args[0], os.O_WRONLY|os.O_CREATE, 0600)
 		if err != nil {
-			log.WithError(err).Fatal("Can't create the file")
+			log.Fatal().Err(err).Msg("Can't create the file")
 		}
 
 		_, err = file.WriteString(content)
 		if err != nil {
-			log.WithError(err).Fatal("Can't write the dotenv file")
+			log.Fatal().Err(err).Msg("Can't write the dotenv file")
 		} else {
-			log.WithFields(log.Fields{"filename": args[0]}).Info("Wrote the .env file")
+			log.Info().Str("filename", args[0]).
+				Msg("Wrote the .env file")
 		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(dotenvCmd)
-
 }

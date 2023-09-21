@@ -5,7 +5,7 @@ import (
 	"fmt"
 	goPath "path"
 
-	"github.com/apex/log"
+	"github.com/rs/zerolog/log"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
@@ -19,7 +19,7 @@ var localSession *session.Session
 
 func makeSession() error {
 	if localSession == nil {
-		log.Debug("Creating session")
+		log.Debug().Msg("Creating session")
 		var err error
 		// create AWS session
 		localSession, err = session.NewSessionWithOptions(session.Options{
@@ -49,7 +49,7 @@ func collectJsonParameters(responseParameters []*ssm.Parameter) (parameters []ma
 func getJsonSSMParametersByPaths(paths []string, strict, recursive bool) (parameters []map[string]string, err error) {
 	err = makeSession()
 	if err != nil {
-		log.WithError(err).Fatal("Can't create session") // fail early here
+		log.Fatal().Err(err).Msg("Can't create session") // fail early here
 	}
 	s := ssm.New(localSession)
 	for _, path := range paths {
@@ -78,7 +78,7 @@ func getJsonSSMParametersByPaths(paths []string, strict, recursive bool) (parame
 func getJsonSSMParameters(names []string, strict bool) (parameters []map[string]string, err error) {
 	err = makeSession()
 	if err != nil {
-		log.WithError(err).Fatal("Can't create session") // fail early here
+		log.Fatal().Err(err).Msg("Can't create session") // fail early here
 	}
 	s := ssm.New(localSession)
 	response, err := s.GetParameters(&ssm.GetParametersInput{
@@ -97,7 +97,9 @@ func getJsonSSMParameters(names []string, strict bool) (parameters []map[string]
 				found = append(found, aws.StringValue(f.Name))
 			}
 			diff := stringSliceDifference(names, found)
-			log.WithFields(log.Fields{"missing_names": diff}).Warn("Some parameters have not been found")
+			log.Warn().
+				Strs("missing_names", diff).
+				Msg("Some parameters have not been found")
 		}
 	}
 	innerParameters, errs := collectJsonParameters(response.Parameters)
@@ -120,7 +122,7 @@ func collectPlainParameters(responseParameters []*ssm.Parameter) (parameters []m
 func getPlainSSMParametersByPaths(paths []string, strict, recursive bool) (parameters []map[string]string, err error) {
 	err = makeSession()
 	if err != nil {
-		log.WithError(err).Fatal("Can't create session") // fail early here
+		log.Fatal().Err(err).Msg("Can't create session") // fail early here
 	}
 	s := ssm.New(localSession)
 	for _, path := range paths {
@@ -148,7 +150,7 @@ func getPlainSSMParametersByPaths(paths []string, strict, recursive bool) (param
 func getPlainSSMParameters(names []string, strict bool) (parameters []map[string]string, err error) {
 	err = makeSession()
 	if err != nil {
-		log.WithError(err).Fatal("Can't create session") // fail early here
+		log.Fatal().Err(err).Msg("Can't create session") // fail early here
 	}
 	s := ssm.New(localSession)
 	response, err := s.GetParameters(&ssm.GetParametersInput{
@@ -167,7 +169,9 @@ func getPlainSSMParameters(names []string, strict bool) (parameters []map[string
 				found = append(found, aws.StringValue(f.Name))
 			}
 			diff := stringSliceDifference(names, found)
-			log.WithFields(log.Fields{"missing_names": diff}).Warn("Some parameters have not been found")
+			log.Warn().
+				Strs("missing_names", diff).
+				Msg("Some parameters have not been found")
 		}
 	}
 	innerParameters, errs := collectPlainParameters(response.Parameters)
@@ -183,27 +187,30 @@ func getAllParameters(names, paths, plainNames, plainPaths []string, strict, rec
 	if len(paths) > 0 {
 		parametersFromPaths, err := getJsonSSMParametersByPaths(paths, strict, recursive)
 		if err != nil {
-			log.WithError(err).WithFields(
-				log.Fields{"paths": paths},
-			).Fatal("Can't get parameters by paths")
+			log.Fatal().
+				Err(err).
+				Strs("paths", paths).
+				Msg("Can't get parameters by paths")
 		}
 		parameters = append(parameters, parametersFromPaths...)
 	}
 	if len(names) > 0 {
 		parametersFromNames, err := getJsonSSMParameters(names, strict)
 		if err != nil {
-			log.WithError(err).WithFields(
-				log.Fields{"names": names},
-			).Fatal("Can't get parameters by names")
+			log.Fatal().
+				Err(err).
+				Strs("names", names).
+				Msg("Can't get parameters by names")
 		}
 		parameters = append(parameters, parametersFromNames...)
 	}
 	if len(plainPaths) > 0 {
 		parametersFromPlainPaths, err := getPlainSSMParametersByPaths(plainPaths, strict, recursive)
 		if err != nil {
-			log.WithError(err).WithFields(
-				log.Fields{"plain_paths": plainPaths},
-			).Fatal("Can't get plain parameters by paths")
+			log.Fatal().
+				Err(err).
+				Strs("paths", plainPaths).
+				Msg("Can't get plain parameters by paths")
 		}
 		parameters = append(parameters, parametersFromPlainPaths...)
 	}
@@ -211,9 +218,10 @@ func getAllParameters(names, paths, plainNames, plainPaths []string, strict, rec
 	if len(plainNames) > 0 {
 		parametersFromPlainNames, err := getPlainSSMParameters(plainNames, strict)
 		if err != nil {
-			log.WithError(err).WithFields(
-				log.Fields{"plain_names": plainNames},
-			).Fatal("Can't get plain parameters by names")
+			log.Fatal().
+				Err(err).
+				Strs("paths", plainNames).
+				Msg("Can't get plain parameters by names")
 		}
 		parameters = append(parameters, parametersFromPlainNames...)
 	}
@@ -244,18 +252,18 @@ func GetParameters(names, paths, plainNames, plainPaths []string, transformation
 	for _, parameter := range allParameters {
 		err = mergo.Merge(&parameters, &parameter, mergo.WithOverride)
 		if err != nil {
-			log.WithError(err).Fatal("Can't merge maps")
+			log.Fatal().Err(err).Msg("Can't merge maps")
 		}
 	}
 
 	if err := expandParameters(parameters, expand, expandValues); err != nil {
-		log.WithError(err).Fatal("Can't expand vars")
+		log.Fatal().Err(err).Msg("Can't expand vars")
 	}
 
 	for _, transformation := range transformationsList {
 		parameters, err = transformation.Transform(parameters)
 		if err != nil {
-			log.WithError(err).Fatal("can't transform parameter")
+			log.Fatal().Err(err).Msg("can't transform parameter")
 		}
 	}
 	return

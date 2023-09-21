@@ -5,7 +5,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/apex/log"
+	"github.com/rs/zerolog/log"
 )
 
 type Transformation interface {
@@ -35,11 +35,11 @@ type RenameTransformation struct {
 func (t *RenameTransformation) Transform(source map[string]string) (map[string]string, error) {
 	for key, newkey := range t.Rule {
 		if _, ok := source[key]; ok {
-			log.Debugf("Renaming '%s' to '%s'", key, newkey)
+			log.Debug().Msgf("Renaming '%s' to '%s'", key, newkey)
 			source[newkey] = source[key]
 			delete(source, key)
 		} else {
-			log.Warnf("Not renaming '%s' to '%s' as it isn't set", key, newkey)
+			log.Warn().Msgf("Not renaming '%s' to '%s' as it isn't set", key, newkey)
 		}
 	}
 

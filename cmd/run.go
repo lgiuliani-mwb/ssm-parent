@@ -8,7 +8,7 @@ import (
 
 	"github.com/springload/ssm-parent/ssm"
 
-	"github.com/apex/log"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -35,16 +35,15 @@ var runCmd = &cobra.Command{
 			viper.GetStringSlice("expand-values"),
 		)
 		if err != nil {
-			log.WithError(err).Fatal("Can't get parameters")
+			log.Fatal().Err(err).Msg("Can't get parameters")
 		}
 		for key, value := range parameters {
 			os.Setenv(key, value)
 		}
 
 		command, err := exec.LookPath(args[0])
-		ctx := log.WithFields(log.Fields{"command": command})
 		if err != nil {
-			ctx.WithError(err).Fatal("Cant find the command")
+			log.Fatal().Err(err).Str("command", command).Msg("Cant find the command")
 		}
 		cmdArgs = append(cmdArgs, args[:1]...)
 
@@ -56,7 +55,7 @@ var runCmd = &cobra.Command{
 			cmdArgs = append(cmdArgs, args[1:]...)
 		}
 		if err := syscall.Exec(command, cmdArgs, os.Environ()); err != nil {
-			ctx.WithError(err).Fatal("Can't run the command")
+			log.Fatal().Err(err).Str("command", command).Msg("Cant run the command")
 		}
 	},
 }
