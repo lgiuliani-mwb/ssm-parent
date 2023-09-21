@@ -9,7 +9,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/springload/ssm-parent/ssm/transformations"
+	"github.com/lgiuliani-mwb/ssm-parent/ssm/transformations"
 )
 
 var (

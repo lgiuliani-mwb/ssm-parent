@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
 	"github.com/rs/zerolog/log"
-	"github.com/springload/ssm-parent/cmd"
+	"github.com/lgiuliani-mwb/ssm-parent/cmd"
 )
 
 var version = "dev"

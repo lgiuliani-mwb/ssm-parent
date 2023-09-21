@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/springload/ssm-parent/ssm"
+	"github.com/lgiuliani-mwb/ssm-parent/ssm"
 
 	"github.com/rs/zerolog/log"
 	"github.com/joho/godotenv"

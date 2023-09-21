@@ -1,4 +1,4 @@
-module github.com/springload/ssm-parent
+module github.com/lgiuliani-mwb/ssm-parent
 
 require (
 	github.com/aws/aws-sdk-go v1.42.38

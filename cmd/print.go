@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/springload/ssm-parent/ssm"
+	"github.com/lgiuliani-mwb/ssm-parent/ssm"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"

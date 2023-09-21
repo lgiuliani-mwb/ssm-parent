@@ -12,7 +12,7 @@ import (
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/imdario/mergo"
 
-	"github.com/springload/ssm-parent/ssm/transformations"
+	"github.com/lgiuliani-mwb/ssm-parent/ssm/transformations"
 )
 
 var localSession *session.Session
